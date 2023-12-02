@@ -102,7 +102,7 @@ pipeline {
         }
         stage('Kubernetes Installation') {
             steps {
-                sh "ansible-playbook -i inventory.yaml Ansible_Playbook.yaml --private-key=$CEP2_test_key"
+                sh "ansible-playbook -i inventory.yaml Ansible_Playbook.yaml --private-key=$CEP2_test_key -e 'ansible_ssh_common_args=\"-o StrictHostKeyChecking=no\"'"
             }
         }
         stage('Kubernetes Tasks') {
