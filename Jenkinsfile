@@ -31,22 +31,22 @@ node{
         sh "docker build -t $dockerHubUser/$containerName:$tag --pull --no-cache ."
     } 
     stage('Docker Image Scan'){
-      steps {
-        echo 'Scanning Docker image for vulnerabilities'
-        sh "trivy image --severity HIGH,CRITICAL $dockerHubUser/$containerName:$tag"
-      }
+        steps {
+          echo 'Scanning Docker image for vulnerabilities'
+          sh "trivy image --severity HIGH,CRITICAL $dockerHubUser/$containerName:$tag"
+        }
     }
     stage('Check Docker Image in DockerHub'){
-      steps {
-        script {
-          def imageExists = sh(script: "docker pull $dockerHubUser/$containerName:$tag > /dev/null && echo 'success' || echo 'failed'", returnStdout: true).trim()
-          if (imageExists == 'success') {
-            error("Image $dockerHubUser/$containerName:$tag already exists in DockerHub. Process will not proceed.")
-          } else {
-            echo "Image $dockerHubUser/$containerName:$tag does not exist yet in DockerHub. Proceeding to the next stage."
+        steps {
+          script {
+            def imageExists = sh(script: "docker pull $dockerHubUser/$containerName:$tag > /dev/null && echo 'success' || echo 'failed'", returnStdout: true).trim()
+            if (imageExists == 'success') {
+              error("Image $dockerHubUser/$containerName:$tag already exists in DockerHub. Process will not proceed.")
+            } else {
+              echo "Image $dockerHubUser/$containerName:$tag does not exist yet in DockerHub. Proceeding to the next stage."
+            }
           }
         }
-      }
     }
     stage('Publishing Image to DockerHub'){
         echo 'Pushing the docker image to DockerHub'
@@ -57,10 +57,10 @@ node{
         } 
     }
     stage('Deleting Local Docker Image'){
-      steps {
-        echo 'Deleting the docker image from local machine'
-        sh "docker rmi $dockerHubUser/$containerName:$tag"
-        echo "Image deletion complete"
-      }
+        steps {
+          echo 'Deleting the docker image from local machine'
+          sh "docker rmi $dockerHubUser/$containerName:$tag"
+          echo "Image deletion complete"
+        }
     }
 }
