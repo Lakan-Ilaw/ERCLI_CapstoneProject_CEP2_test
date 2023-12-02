@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        tag = env.BUILD_NUMBER ?: "latest"
+        tag = "${env.BUILD_NUMBER ?: 'latest'}"
         dockerHubUser = ''
         containerName = "ercli-bankingapp_cep2"
         httpPort = "8989"
