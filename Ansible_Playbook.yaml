@@ -12,7 +12,7 @@
         port: 22
         delay: 60
         timeout: 300
-  tasks:
+
     - name: Update apt package index
       apt:
         update_cache: yes
