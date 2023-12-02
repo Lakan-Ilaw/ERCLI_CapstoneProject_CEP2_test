@@ -1,0 +1,75 @@
+---
+- hosts: all
+  become: true
+  remote_user: ubuntu
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install necessary packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - docker.io
+          - containerd
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+
+    - name: Create keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Remove existing Kubernetes apt-key file if it exists
+      file:
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        state: absent
+          
+    - name: Add Kubernetes apt-key
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository list
+      shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Kubernetes
+      apt:
+        name: "{{ k8s_packages }}"
+        state: present
+      vars:
+        k8s_packages:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Hold Kubernetes packages
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Enable and start kubelet
+      systemd:
+        name: kubelet
+        state: started
+        enabled: yes
+...
