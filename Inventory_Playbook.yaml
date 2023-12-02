@@ -1,0 +1,15 @@
+---
+- hosts: localhost #Invetory_Playbook.yaml
+  gather_facts: no
+  tasks:
+    - name: Delete Existing inventory file
+      file:
+        path: "{{ lookup('env', 'WORKSPACE') }}/inventory.yaml"
+        state: absent
+    - name: Generate inventory file
+      shell: aws ec2 describe-instances --query "Reservations[].Instances[].PublicIpAddress" | \
+        awk 'NR==1 {printf "[masternode]\nnode1 ansible_host=%s\n", $2} NR==2 {printf "\n[workernode]\nnode2 ansible_host=%s\n", $2}' > "{{ lookup('env', 'WORKSPACE') }}/inventory.yaml"
+      args:
+        executable: /bin/bash
+...
+
