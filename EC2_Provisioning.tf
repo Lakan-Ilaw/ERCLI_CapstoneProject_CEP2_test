@@ -44,7 +44,8 @@ resource "aws_security_group" "ERCLI_CP2_Security_Group" {
     cidr_blocks     = ["0.0.0.0/0"]
   }
 }
-resource "null_resource" "Installation_via_Ansible" {
+
+resource "null_resource" "EC2_Connectivity_Check" {
   count = length(aws_instance.ERCLI_CP2_Ubuntu)
 
   provisioner "local-exec" {
@@ -56,10 +57,11 @@ resource "null_resource" "Installation_via_Ansible" {
         retries=$((retries+1))
         sleep 10
       done
-#      ansible-playbook -i '${aws_instance.ERCLI_CP2_Ubuntu.*.public_ip[count.index]},' Ansible_Playbook.yaml --private-key=/home/elmerlakanilawy/CP2_test/CEP2_test.pem
+
+      if [ $retries -eq $max_retries ]; then
+        echo "Failed to connect to the host via ssh after $max_retries attempts"
+        exit 1
+      fi
     EOT
-    environment = {
-      ANSIBLE_HOST_KEY_CHECKING = "False"
-    }
   }
 }
