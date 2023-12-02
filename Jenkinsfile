@@ -6,6 +6,7 @@ pipeline {
         dockerHubUser = ''
         containerName = "ercli-bankingapp_cep2"
         httpPort = "8989"
+        CEP2_test_key = "/home/elmerlakanilawy/CP2_test/CEP2_test.pem"
     }
 
     stages {
@@ -78,5 +79,37 @@ pipeline {
                 echo "Image deletion complete"
             }
         }
+        stage('Terraform Initialization & Planning') {
+            steps {
+              echo 'Initializing Terraform'
+              sh "terraform init"
+              echo 'Terraform Planning'
+              sh "terraform plan"
+              echo 'Terraform Initialization complete'
+            }
+        }
+        stage('Terraform Application') {
+            steps {
+              echo 'Applying Terraform configuration'
+              sh "terraform apply --auto-approve"
+              echo 'Terraform apply complete'
+            }
+        }
+        stage('Gathering Inventory Details') {
+            steps {
+                sh "ansible-playbook Inventory_Playbook.yaml --private-key=$CEP2_test_key"
+            }
+        }
+        stage('Kubernetes Installation') {
+            steps {
+                sh "ansible-playbook -i inventory.yaml Ansible_Playbook.yaml --private-key=$CEP2_test_key"
+            }
+        }
+        stage('Kubernetes Tasks') {
+            steps {
+                sh "ansible-playbook -i inventory.yaml Kubernetes_Playbook.yaml --private-key=$CEP2_test_key Deploy.yaml -e httpPort=$httpPort -e containerName=$containerName -e dockerImageTag=$dockerHubUser/$contain"
+            }
+        }
+
     }
 }
