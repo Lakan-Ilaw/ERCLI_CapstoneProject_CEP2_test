@@ -107,7 +107,7 @@ pipeline {
         }
         stage('Kubernetes Tasks') {
             steps {
-                sh "ansible-playbook -i inventory.yaml Kubernetes_Playbook.yaml --private-key=$CEP2_test_key Deploy.yaml -e httpPort=$httpPort -e containerName=$containerName -e dockerImageTag=$dockerHubUser/$contain"
+                sh "ansible-playbook -i inventory.yaml Kubernetes_Playbook.yaml --private-key=$CEP2_test_key Deploy.yaml -e httpPort=$httpPort -e containerName=$containerName -e dockerImageTag=$dockerHubUser/$containerName:$tag"
             }
         }
 
