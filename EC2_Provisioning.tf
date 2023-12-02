@@ -5,7 +5,7 @@ resource "aws_instance" "ERCLI_CP2_Ubuntu" {
   count         = 2
   ami           = "ami-06aa3f7caf3a30282"
   instance_type = "t2.medium"
-  key_name      = "CEP2_test"
+  key_name      = "ERCLI_CEP2_Key"
   subnet_id     = data.aws_subnet.ercli_subnet.id
   vpc_security_group_ids = [aws_security_group.ERCLI_CP2_Security_Group.id]
   tags = {
@@ -53,7 +53,7 @@ resource "null_resource" "EC2_Connectivity_Check" {
       max_retries=5
       retries=0
       while [ $retries -lt $max_retries ]; do
-        ssh -i /home/elmerlakanilawy/CP2_test/CEP2_test.pem -o ConnectTimeout=20 -o StrictHostKeyChecking=no ubuntu@${aws_instance.ERCLI_CP2_Ubuntu[count.index].public_ip} exit && break
+        ssh -i /home/elmerlakanilawy/CapstoneProject/ERCLI-CEP2/ERCLI_CEP2_Key.pem -o ConnectTimeout=20 -o StrictHostKeyChecking=no ubuntu@${aws_instance.ERCLI_CP2_Ubuntu[count.index].public_ip} exit && break
         retries=$((retries+1))
         sleep 10
       done
