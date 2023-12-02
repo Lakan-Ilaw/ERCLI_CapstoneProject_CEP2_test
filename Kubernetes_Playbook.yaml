@@ -49,7 +49,6 @@
     - name: Wait for node to join
       wait_for:
         timeout: 60
-      delegate_to: localhost
 
     - name: Check node status
       shell: sudo kubectl get nodes -o wide
