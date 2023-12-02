@@ -69,8 +69,11 @@
       command: "kubectl delete deployment {{ containerName }}"
       ignore_errors: true
     
-    - name: Performing Deployment of {{ dockerImageTag }}
-      command: "kubectl create deployment {{ containerName }} --image=docker.io/{{ dockerImageTag }} --port={{ httpPort }} "
+    - name: Create Deployment of {{ dockerImageTag }}
+      command: "kubectl create deployment {{ containerName }} --image=docker.io/{{ dockerImageTag }}"
+    
+    - name: Expose Deployment
+      command: "kubectl expose deployment {{ containerName }} --type=LoadBalancer --port={{ httpPort }} --target-port={{ httpPort }}"
     
     - name: Get Container List
       command: "kubectl get pods -o wide"
