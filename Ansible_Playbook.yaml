@@ -4,14 +4,18 @@
   remote_user: ubuntu
   vars:
     ansible_ssh_common_args: '-o ConnectionAttempts=5 -o ConnectTimeout=10'
-  tasks:
+  pre_tasks:
     - name: Wait for system to boot up
-      local_action:
-        module: wait_for
+      wait_for:
         host: "{{ inventory_hostname }}"
         port: 22
         delay: 60
         timeout: 300
+      delegate_to: localhost
+  tasks:
+    - name: Wait for system to boot up
+      pause:
+        minutes: 1
 
     - name: Update apt package index
       apt:
