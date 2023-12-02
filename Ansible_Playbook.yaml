@@ -11,7 +11,7 @@
   tasks:
     - name: Wait for system to boot up
       pause:
-        minutes: 1
+        seconds: 30
 
     - name: Update apt package index
       apt:
