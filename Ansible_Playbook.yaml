@@ -5,6 +5,14 @@
   vars:
     ansible_ssh_common_args: '-o ConnectionAttempts=5 -o ConnectTimeout=10'
   tasks:
+    - name: Wait for system to boot up
+      local_action:
+        module: wait_for
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 60
+        timeout: 300
+  tasks:
     - name: Update apt package index
       apt:
         update_cache: yes
