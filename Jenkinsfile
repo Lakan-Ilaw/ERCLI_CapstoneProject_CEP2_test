@@ -4,7 +4,7 @@ pipeline {
     environment {
         tag = "${env.BUILD_NUMBER ?: 'latest'}"
         dockerHubUser = ''
-        containerName = "ercli-bankingapp_cep2"
+        containerName = "ercli-bankingapp-cep2"
         httpPort = "8989"
         CEP2_test_key = "/home/elmerlakanilawy/CP2_test/CEP2_test.pem"
     }
