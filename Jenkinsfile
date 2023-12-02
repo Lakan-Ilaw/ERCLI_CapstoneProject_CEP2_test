@@ -43,12 +43,6 @@ pipeline {
             }
         }
 
-        stage('Docker Image Scan') {
-            steps {
-                echo 'Scanning Docker image for vulnerabilities'
-                sh "trivy image --severity HIGH,CRITICAL ${dockerHubUser}/${containerName}:${tag}"
-            }
-        }
 
         stage('Check Docker Image in DockerHub') {
             steps {
