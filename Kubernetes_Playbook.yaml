@@ -1,0 +1,77 @@
+- name: Kubernetes Master Node Initialization
+  hosts: masternode
+  become: true
+  remote_user: ubuntu
+  tasks:
+    - name: Initialize Kubernetes
+      command: kubeadm init
+      register: kubeadm_init_result
+
+    - name: Check if kubeadm init was successful
+      fail:
+        msg: "kubeadm init failed"
+      when: not kubeadm_init_result.rc == 0
+
+    - name: Create .kube directory
+      file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+        mode: '0755'
+
+    - name: Copy admin.conf to .kube/config
+      command: sudo cp -i /etc/kubernetes/admin.conf "{{ ansible_env.HOME }}/.kube/config"
+
+    - name: Change ownership of .kube/config
+      command: sudo chown {{ ansible_env.USER }}:{{ ansible_env.USER }} "{{ ansible_env.HOME }}/.kube/config"
+
+    - name: Install Container Network Interface (CNI)
+      shell: sudo kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+
+- name: Kubernetes Worker Node Join
+  hosts: workernode
+  remote_user: ubuntu
+  become: true
+  tasks:
+    - name: Get kubeadm join command from master
+      shell: sudo kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      delegate_to: "{{ groups['masternode'][0] }}"
+      
+    - name: Execute kubeadm join command
+      shell: "{{ kubeadm_join_command.stdout }}"
+      register: join_result
+
+    - name: Check if kubeadm join was successful
+      fail:
+        msg: "kubeadm join failed"
+      when: not join_result.rc == 0
+
+    - name: Wait for node to join
+      wait_for:
+        timeout: 60
+      delegate_to: localhost
+
+    - name: Check node status
+      shell: sudo kubectl get nodes -o wide
+      register: node_status
+      delegate_to: "{{ groups['masternode'][0] }}"
+
+    - name: Fail if node is not ready
+      fail:
+        msg: "Node is not ready"
+      when: "' Ready ' not in node_status.stdout"
+
+- name: Deployment of Docker Container Image via Kubernetes
+  hosts: masternode
+  remote_user: ubuntu
+  become: true
+  tasks : 
+    - name: Remove Existing Container
+      command: "kubectl delete deployment {{ containerName }}"
+      ignore_errors: true
+    
+    - name: Performing Deployment of {{ dockerImageTag }}
+      command: "kubectl create deployment {{ containerName }} --image=docker.io/{{ dockerImageTag }} --port={{ httpPort }} "
+    
+    - name: Get Container List
+      command: "kubectl get pods -o wide"
