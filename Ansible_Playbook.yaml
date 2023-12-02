@@ -2,6 +2,8 @@
 - hosts: all
   become: true
   remote_user: ubuntu
+  vars:
+    ansible_ssh_common_args: '-o ConnectionAttempts=5 -o ConnectTimeout=10'
   tasks:
     - name: Update apt package index
       apt:
